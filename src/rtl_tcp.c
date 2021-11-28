@@ -88,6 +88,7 @@ static int enable_biastee = 0;
 static int global_numq = 0;
 static struct llist *ll_buffers = 0;
 static int llbuf_num = DEFAULT_MAX_NUM_BUFFERS;
+static int verbose_output = 0;
 
 static volatile int do_exit = 0;
 
@@ -106,6 +107,7 @@ void usage(void)
 	printf("\t[-P ppm_error (default: 0)]\n");
 	printf("\t[-T enable bias-T on GPIO PIN 0 (works for rtl-sdr.com v3 dongles)]\n");
 	printf("\t[-D enable direct sampling (default: off)]\n");
+	printf("\t[-V verbose output (default: off)]\n");
 	exit(1);
 }
 
@@ -185,10 +187,12 @@ void rtlsdr_callback(unsigned char *buf, uint32_t len, void *ctx)
 
 			cur->next = rpt;
 
-			if (num_queued > global_numq)
-				printf("ll+, now %d\n", num_queued);
-			else if (num_queued < global_numq)
-				printf("ll-, now %d\n", num_queued);
+			if (verbose_output) {
+				if (num_queued > global_numq)
+					printf("ll+, now %d\n", num_queued);
+				else if (num_queued < global_numq)
+					printf("ll-, now %d\n", num_queued);
+			}
 
 			global_numq = num_queued;
 		}
@@ -415,7 +419,7 @@ int main(int argc, char **argv)
 	struct sigaction sigact, sigign;
 #endif
 
-	while ((opt = getopt(argc, argv, "a:p:f:g:s:b:n:d:P:TD")) != -1) {
+	while ((opt = getopt(argc, argv, "a:p:f:g:s:b:n:d:P:TDV")) != -1) {
 		switch (opt) {
 		case 'd':
 			dev_index = verbose_device_search(optarg);
@@ -450,6 +454,9 @@ int main(int argc, char **argv)
 			break;
 		case 'D':
 			direct_sampling = 1;
+			break;
+		case 'V':
+			verbose_output = 1;
 			break;
 		default:
 			usage();
